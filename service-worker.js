@@ -14,7 +14,7 @@ async function sendRequest(endpoint,urlList){
         headers:{
             "Content-Type":"application/json"
         },
-        body:JSON.stringify(urlList)
+        body:JSON.stringify({urlList})
     });
     return response.status
 
@@ -30,9 +30,8 @@ chrome.tabs.onActivated.addListener(async ( {tabId})=>{
     if(activatedTab && activatedTab.url.length>0){
         try {
             const activateUrl = new URL(activatedTab.url)
-            console.log(listeningTabs)
             const toSend = mountPostBody([activateUrl, ].concat(listeningTabs.map(t=>new URL(t.url))))
-            console.log(await sendRequest(sendingEndpoint.url,toSend))
+            await sendRequest(sendingEndpoint.url,toSend)
             
         } catch (error) {
             console.error("Non url supplied",error)

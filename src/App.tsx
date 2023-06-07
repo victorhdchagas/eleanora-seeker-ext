@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import './App.css'
-
+import EleanoraLogo from './assets/Eleanora-seeker-logo.png'
 function App() {
     const [url,setUrl] = useState("")
     const [status,setStatus] = useState(false)
@@ -35,9 +35,7 @@ function App() {
 
     return (
         <form className={"w-full flex flex-col gap-2"} onClick={update}>
-            <h1 className="text-xl font-bold">
-                Eleanora Seeker 
-            </h1>
+            <img src={EleanoraLogo} className="w-full"/>
 
             <h2 className="text-md ">
                 Insert eleanora endpoint
