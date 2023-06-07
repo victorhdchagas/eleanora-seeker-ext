@@ -7,9 +7,11 @@ Este é uma extensão que tem por finalidade enviar para um endpoint a lista de 
 A idéia é contabilizar e fazer um relatório com fins de produtividade, para ter uma noção de como melhorar suas atividades.
 
 ### Passos para instalação
+```bash
     git clone https://github.com/victorhdchagas/eleanora-seeker-ext.git eleanora-seeker
     cd ./eleanora-seeker
     npm run build
+```
 - Vá no navegador, abra a aba de extensões: vivaldi://extensions/ ou chrome://extensions/
 - Habilite o **modo desenvolvedor**
 - Clique em **Carregar sem compactação**
