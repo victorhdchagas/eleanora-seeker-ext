@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Eleanora Seeker",
+  "description": "Responsável por notificar ao serviço as páginas que vocẽ esta utilizando.",
+  "version": "1.0",
+  "action": {
+    "default_popup": "dist/index.html",
+    "default_icon2": "dist/vite.svg"
+  },
+  "permissions":["storage","tabs"],
+  "background":{
+    "service_worker": "service-worker.js"
+  }
+}
