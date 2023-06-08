@@ -5,7 +5,7 @@
   "version": "1.0",
   "action": {
     "default_popup": "dist/index.html",
-    "default_icon": "dist/Eleanora-seeker-logo.png"
+    "default_icon": "src/assets/Eleanora-seeker-logo.png"
   },
   "permissions":["storage","tabs"],
   "background":{

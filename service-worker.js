@@ -1,21 +1,36 @@
 
 function mountParam(url){
-    return `${url.protocol}://${url.hostname}${url.port?":"+url.port:""}${url.pathname}${url.search}`
+    return `${url.protocol}//${url.hostname}${url.port?":"+url.port:""}${url.pathname}${url.search}`
 }
 
 function mountPostBody(urls){
     return urls.map(url=>mountParam(url))
 }
 
+// let latestSend = []
+function latestSend(){
+    const set = async(latestSend)=>{
+        const data = await chrome.storage.sync.get(latestSend)
+        await chrome.storage.sync.set({...data,latestSend})
+    }
+    const get = async (latestSend)=>{
+        const toReturn = await chrome.storage.sync.get(latestSend);
+        return toReturn[latestSend]
+    }
+
+    return {set,get}
+}
 
 async function sendRequest(endpoint,urlList){
+    const toSend = {urlList,latestSend:await latestSend().get("latestSend")}
     const response =await fetch(endpoint,{
         method:"POST",
         headers:{
             "Content-Type":"application/json"
         },
-        body:JSON.stringify({urlList})
+        body:JSON.stringify(toSend)
     });
+    await latestSend().set(urlList);
     return response.status
 
 }
@@ -26,7 +41,6 @@ chrome.tabs.onActivated.addListener(async ( {tabId})=>{
     const allTabs = await chrome.tabs.query({active:true})
     const activatedTab = allTabs.find(t=>t.id==tabId)
     const listeningTabs = await chrome.tabs.query({audible:true})
-    console.log(sendingEndpoint.url)
     if(activatedTab && activatedTab.url.length>0){
         try {
             const activateUrl = new URL(activatedTab.url)

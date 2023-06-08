@@ -9,7 +9,7 @@ function App() {
         try {
             const urlInstance = new URL(url)
     
-            const response = await fetch(urlInstance.origin+'/ping',{
+            const response = await fetch(urlInstance.href+'/ping',{
                 method:"POST",
             })
             return response.status==200
@@ -21,9 +21,10 @@ function App() {
     }
 
     useEffect(()=>{
-        chrome.storage.sync.get((items)=>{
+        chrome.storage.sync.get(async (items)=>{
             setUrl(items.url)
-            checkServerHealth(items.url)
+            console.log(items.url)
+            setStatus(await checkServerHealth(items.url))
         })
     },[])
 
