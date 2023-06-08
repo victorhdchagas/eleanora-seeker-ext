@@ -7,8 +7,13 @@
     "default_popup": "dist/index.html",
     "default_icon": "src/assets/Eleanora-seeker-logo.png"
   },
-  "permissions":["storage","tabs"],
+  "permissions":["storage","tabs",
+  "scripting"],
   "background":{
-    "service_worker": "service-worker.js"
-  }
+    "service_worker": "service-worker.js",
+    "type":"module"
+  },
+  "host_permissions": [
+    "https://www.youtube.com/*"
+  ]
 }
