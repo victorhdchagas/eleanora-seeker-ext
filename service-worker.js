@@ -1,6 +1,9 @@
-async function createToSend(tab){
+const newTab = {
+    url: null
+}
+async function createToSend(tab) {
     const url = new URL(tab.url)
-    return  { title: await getTitle(tab,url), url: mountParam(url) }
+    return { title: await getTitle(tab, url), url: mountParam(url) }
 }
 function youtubeScriptCallback() {
     const script = () => {
@@ -46,7 +49,7 @@ async function getTitle(tab, url) {
         target: { tabId: tab.id, allFrames: false },
         func: injector.script
     },).then(injector.onSuccess);
-    return executing + " - " + tab.title|| tab.title;
+    return executing + " - " + tab.title || tab.title;
 }
 
 function latestSend() {
@@ -62,8 +65,8 @@ function latestSend() {
     return { set, get }
 }
 
-async function sendRequest(endpoint, urlList) {
-    const toSend = { urlList, latestSend: await latestSend().get("latestSend") }
+async function sendRequest(endpoint, toSend) {
+    // const toSend = { urlList, latestSend: await latestSend().get("latestSend") }
     const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -71,25 +74,47 @@ async function sendRequest(endpoint, urlList) {
         },
         body: JSON.stringify(toSend)
     });
-    await latestSend().set(urlList);
     return response.status
 
 }
+function debounce(func, timeout = 500) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
 //Usado pra gerenciar o status se o audio é disponivel ou nao
 chrome.tabs.onUpdated.addListener(async (tabId, data, tab) => {
+    if (data.status == 'loading')
+        if (data.url && data.url.length > 0 && !(data.url.startsWith("chrome:/") || data.url.startsWith("vivaldi:/"))) {
+            if (data.url !== newTab.url) {
+                const toSend = await createToSend(tab)
+                const sendingEndpoint = await chrome.storage.sync.get("url")
 
-    if (Object.keys(data).indexOf("audible")>-1 || (data.mutedInfo && Object.keys(data.mutedInfo).indexOf("muted")>-1)) {
+                await sendRequest(sendingEndpoint.url + "/new-tab", toSend)
+                newTab.url = data.url
+            }
+            return;
+        }
+    if (Object.keys(data).indexOf("audible") > -1 || (data.mutedInfo && Object.keys(data.mutedInfo).indexOf("muted") > -1)) {
         try {
             const sendingEndpoint = await chrome.storage.sync.get("url")
+            newTab.url = tab.url
+
             if (!sendingEndpoint || sendingEndpoint.url.length == 0) return;
-            const muted = tab.mutedInfo.muted || false;
-            const listening = !muted || tab.audible;
-            const toSend =await createToSend(tab)
-            toSend.listening = listening;
-            await sendRequest(sendingEndpoint.url+"/audio",toSend)
-            
+            const muted = tab.mutedInfo.muted;
+            const validatingByMuted = data.mutedInfo && Object.keys(data.mutedInfo).indexOf("muted") > -1
+            const toSend = await createToSend(tab)
+            if (validatingByMuted)
+                toSend.listening = !muted
+            else
+                toSend.listening = tab.audible
+            await sendRequest(sendingEndpoint.url + "/audio", toSend)
+
         } catch (error) {
-            console.error("error on update",error)
+            console.error("error on update", error)
         }
     }
 })
@@ -98,10 +123,13 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
     if (!sendingEndpoint || sendingEndpoint.url.length == 0) return;
     const allTabs = await chrome.tabs.query({ active: true })
     const activatedTab = allTabs.find(t => t.id == tabId)
+
     if (activatedTab && activatedTab.url.length > 0) {
         try {
+            newTab.url = activatedTab.url
             const toSend = await createToSend(activatedTab);
-            await sendRequest(sendingEndpoint.url, toSend)
+            await sendRequest(sendingEndpoint.url, { actual: toSend, latestSend: await latestSend().get("latestSend") })
+            await latestSend().set(toSend);
 
         } catch (error) {
             console.error("error on activate", error)
